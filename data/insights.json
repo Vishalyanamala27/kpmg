@@ -1,0 +1,36 @@
+{
+  "n": 1120,
+  "mean_score": 59.3,
+  "risk_counts": {
+    "Safe": 437,
+    "Watch": 352,
+    "Critical": 181,
+    "At-Risk": 150
+  },
+  "segment_counts": {
+    "Steady Climbers": 385,
+    "At-Risk Strugglers": 308,
+    "Disengaged Potentials": 275,
+    "All-Round Stars": 75,
+    "Placement-Ready Grinders": 67,
+    "Academic Strong, Placement-Weak": 10
+  },
+  "dept_mean": {
+    "AIDS": 59.4,
+    "AIML": 59.5,
+    "CS-IoT": 59.4,
+    "CSDS": 59.8,
+    "CSE": 58.2,
+    "ECE": 59.7,
+    "EEE": 59.3
+  },
+  "weights": {
+    "Academics (30%)": 0.3,
+    "Attendance (15%)": 0.15,
+    "LMS Activity (15%)": 0.15,
+    "Engagement (10%)": 0.1,
+    "Placement Readiness (15%)": 0.15,
+    "Skills (10%)": 0.1,
+    "Feedback (5%)": 0.05
+  }
+}
