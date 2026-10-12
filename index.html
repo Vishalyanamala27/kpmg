@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CampusTrack — Student Success Platform</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<script src="data.js"></script>
+<style>
+  * { font-family: 'Inter', system-ui, sans-serif; }
+  body { background: #f2f5fa; color: #16213a; }
+  .navlink { font-size: .85rem; font-weight: 700; color: #475569; padding: .5rem .9rem; border-radius: .6rem; cursor: pointer; }
+  .navlink:hover { background: #eef2ff; color: #4338ca; }
+  .navlink.active { background: #4338ca; color: #fff; }
+  .hero { background: linear-gradient(120deg, #1e1b4b 10%, #4338ca 55%, #0d9488 110%); }
+  .branch-card { background: #fff; border: 1px solid #e2e8f0; border-radius: 1.1rem; padding: 1.25rem; cursor: pointer; transition: transform .12s ease, box-shadow .12s ease; }
+  .branch-card:hover { transform: translateY(-3px); box-shadow: 0 12px 28px rgba(67,56,202,.15); }
+  .pill { font-size: .75rem; font-weight: 700; padding: .4rem 1rem; border-radius: 9999px; background: #fff; color: #4338ca; border: 1.5px solid #c7d2fe; cursor: pointer; }
+  .pill.active { background: #4338ca; color: #fff; border-color: #4338ca; }
+  .card { background: #fff; border: 1px solid #e2e8f0; border-radius: 1rem; padding: 1rem 1.25rem; }
+  .tab { font-size: .8rem; font-weight: 700; padding: .55rem 1rem; border-radius: .7rem; color: #475569; cursor: pointer; }
+  .tab.active { background: #4338ca; color: #fff; }
+  table.ct { width: 100%; border-collapse: collapse; font-size: .83rem; }
+  table.ct th { background: #eef2ff; color: #3730a3; padding: .55rem; border-bottom: 2px solid #c7d2fe; text-align: left; }
+  table.ct td { padding: .5rem .55rem; border-bottom: 1px solid #eef2ff; }
+  table.ct tr.low td { background: #fef2f2; }
+  tr.rowclick { cursor: pointer; } tr.rowclick:hover td { background: #eef2ff; }
+  .badge { font-size: .68rem; font-weight: 700; padding: .2rem .65rem; border-radius: 9999px; white-space: nowrap; }
+  .bar-track { background: #e2e8f0; border-radius: 9999px; height: 8px; }
+  .bar-fill { border-radius: 9999px; height: 8px; }
+  .tt-cell { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: .55rem; padding: .45rem; font-size: .72rem; min-height: 3.1rem; }
+  .tt-lab { background: #ecfdf5; border-color: #6ee7b7; }
+  .tt-today { outline: 2px solid #0d9488; background: #ccfbf1; }
+  #aiBubble { position: fixed; bottom: 1.25rem; right: 1.25rem; z-index: 50; width: 56px; height: 56px; border-radius: 9999px; background: linear-gradient(135deg, #4338ca, #0d9488); display: flex; align-items: center; justify-content: center; box-shadow: 0 8px 24px rgba(67,56,202,.45); cursor: pointer; border: none; }
+  #aiCard { position: fixed; bottom: 5.5rem; right: 1.25rem; z-index: 50; width: min(380px, calc(100vw - 2rem)); max-height: 78vh; display: flex; flex-direction: column; border-radius: 1.1rem; overflow: hidden; background: #fff; box-shadow: 0 16px 48px rgba(30,27,75,.35); border: 1px solid #e2e8f0; }
+  .chip { font-size: .72rem; font-weight: 600; background: #fff; border: 1px solid #c7d2fe; color: #4338ca; border-radius: 9999px; padding: .35rem .8rem; cursor: pointer; }
+  .chip:hover { background: #eef2ff; }
+  .iconbtn { width: 40px; height: 40px; border-radius: 9999px; background: #eef2ff; border: 1px solid #c7d2fe; display: flex; align-items: center; justify-content: center; cursor: pointer; flex-shrink: 0; }
+  #aiSend { width: 40px; height: 40px; border-radius: 9999px; background: linear-gradient(135deg, #4338ca, #0d9488); border: none; display: flex; align-items: center; justify-content: center; cursor: pointer; flex-shrink: 0; }
+  .chat-ai { background: #eef2ff; border: 1px solid #e0e7ff; }
+  .chat-user { background: #4338ca; color: #fff; }
+  input[type=text], input[type=password], select { background: #fff !important; border: 1.5px solid #cbd5e1 !important; color: #16213a !important; border-radius: .6rem; padding: .5rem .7rem; font-size: .85rem; }
+  input:focus, select:focus { outline: 2px solid #a5b4fc; border-color: #4338ca !important; }
+</style>
+</head>
+<body>
+
+<!-- Top navbar -->
+<nav class="bg-white border-b border-slate-200 sticky top-0 z-30">
+  <div class="max-w-[1150px] mx-auto px-4 py-2.5 flex items-center gap-2 flex-wrap">
+    <div class="flex items-center gap-2 mr-2 cursor-pointer" onclick="go('home')">
+      <span style="width:32px;height:32px;border-radius:10px;background:linear-gradient(135deg,#4338ca,#0d9488);color:#fff;font-weight:900;display:inline-flex;align-items:center;justify-content:center">C</span>
+      <span class="font-black text-lg tracking-tight">Campus<span style="color:#0d9488">Track</span></span>
+    </div>
+    <div class="flex gap-1">
+      <span class="navlink" data-nav="home">Home</span>
+      <span class="navlink" data-nav="students">Students</span>
+      <span class="navlink" data-nav="timetables">Timetables</span>
+    </div>
+    <div class="ml-auto w-full sm:w-72 mt-2 sm:mt-0">
+      <input type="text" id="search" class="w-full" placeholder="Search name, roll no, or ID...">
+    </div>
+  </div>
+  <div id="searchResults" class="hidden max-w-[1150px] mx-auto px-4"><div class="bg-white border border-slate-200 rounded-xl mb-2 max-h-56 overflow-auto" id="searchBox"></div></div>
+</nav>
+
+<main class="max-w-[1150px] mx-auto px-4 py-5">
+
+  <!-- HOME -->
+  <section id="view-home">
+    <div class="hero text-white rounded-2xl p-6 md:p-10 mb-5">
+      <div class="text-xs font-bold tracking-widest opacity-80 mb-1">STUDENT SUCCESS PLATFORM</div>
+      <h1 class="text-2xl md:text-4xl font-black leading-tight">Every student. Every subject.<br>One clear path forward.</h1>
+      <p class="text-sm mt-2 opacity-90 max-w-xl">Pick a branch to open year-wise records — attendance, marks, lab records, improvement plans and timetables for each student, plus an AI study agent.</p>
+    </div>
+    <div class="text-sm font-extrabold mb-2 tracking-wide text-slate-500">CHOOSE A BRANCH</div>
+    <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-3 mb-6" id="branchGrid"></div>
+    <div class="card text-sm text-slate-600">
+      <b class="text-slate-800">How it works.</b>
+      <span> Open any student for subject-wise attendance (Held / Attended / %), marks vs the last test, lab records, and a personal improvement plan. Below 75% attendance always triggers a recovery warning. The AI agent answers doubts with the open student's record attached (Groq).</span>
+    </div>
+  </section>
+
+  <!-- STUDENTS -->
+  <section id="view-students" class="hidden">
+    <div class="text-xs text-slate-500 mb-2"><span class="cursor-pointer font-bold" style="color:#4338ca" onclick="go('home')">Home</span> / <span id="crumb">Branch</span></div>
+    <div class="card mb-3">
+      <div class="flex flex-wrap gap-2 items-center">
+        <span class="text-xs font-bold text-slate-500">YEAR</span><span id="yearPills" class="flex flex-wrap gap-2"></span>
+        <span class="text-xs font-bold text-slate-500 ml-2">SECTION</span><span id="secPills" class="flex flex-wrap gap-2"></span>
+      </div>
+    </div>
+    <div class="card !p-0 overflow-auto">
+      <table class="ct"><thead><tr><th>Roll No</th><th>Name</th><th>CGPA</th><th>Attendance</th><th></th></tr></thead>
+      <tbody id="roster"></tbody></table>
+    </div>
+  </section>
+
+  <!-- STUDENT DETAIL -->
+  <section id="view-student" class="hidden">
+    <button onclick="backToList()" class="pill mb-3">← Back</button>
+    <div id="profile"></div>
+  </section>
+
+  <!-- TIMETABLES -->
+  <section id="view-timetables" class="hidden">
+    <div class="card mb-3 flex flex-wrap gap-2 items-center">
+      <select id="ttBranch"></select><select id="ttYear"><option>1</option><option>2</option><option>3</option><option>4</option></select><select id="ttSec"><option>A</option><option>B</option><option>C</option><option>D</option><option>E</option></select>
+      <span class="text-xs text-slate-500 ml-auto" id="ttToday"></span>
+    </div>
+    <div id="ttBody"></div>
+  </section>
+</main>
+
+<footer class="text-center text-xs text-slate-400 py-6" id="footNote"></footer>
+
+<!-- AI floating bubble + card -->
+<button id="aiBubble" onclick="toggleAI()" title="AI Study Agent">
+  <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10L12 5 2 10l10 5 10-5z"/><path d="M6 12v5c0 1.7 2.7 3 6 3s6-1.3 6-3v-5"/><path d="M22 10v6"/></svg>
+  <span style="position:absolute;top:2px;right:2px;width:12px;height:12px;border-radius:9999px;background:#22c55e;border:2px solid #fff"></span>
+</button>
+<div id="aiCard" class="hidden" style="display:none">
+  <div class="p-3 text-white flex items-center gap-2" style="background:#1e1b4b">
+    <span style="width:24px;height:24px;border-radius:8px;background:linear-gradient(135deg,#0d9488,#4338ca);color:#fff;font-size:11px;font-weight:800;display:inline-flex;align-items:center;justify-content:center">AI</span>
+    <div><div class="font-extrabold text-sm">Study Agent</div><div class="text-[11px] opacity-80" id="aiCtx">Ask anything about the open student record.</div></div>
+    <button class="ml-auto font-bold text-lg leading-none" onclick="toggleAI(false)">✕</button>
+  </div>
+  <div id="chat" class="flex-1 overflow-auto p-3 space-y-2 text-sm" style="background:#f4f6fb;min-height:220px;max-height:46vh"></div>
+  <div class="px-3 pt-2 flex flex-wrap gap-1.5" style="background:#f4f6fb" id="chips"></div>
+  <div class="p-2.5 flex gap-2 items-center bg-white border-t border-slate-200">
+    <button class="iconbtn" id="micBtn" title="Speak">
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#4338ca" stroke-width="2" stroke-linecap="round"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 10a7 7 0 0 0 14 0M12 19v3"/></svg>
+    </button>
+    <input type="text" id="chatIn" class="flex-1" placeholder="Ask about marks, attendance, plan...">
+    <button id="aiSend" onclick="sendChat()" title="Send">
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/></svg>
+    </button>
+  </div>
+  <details class="bg-white px-3 pb-2 text-xs text-slate-500">
+    <summary class="cursor-pointer">Connection settings (paste Groq key for full AI)</summary>
+    <div class="flex gap-2 mt-1">
+      <input type="password" id="groqKey" class="flex-1 !text-xs" placeholder="Groq key">
+      <select id="groqModel" class="!text-xs"><option value="openai/gpt-oss-120b">gpt-oss-120b</option><option value="openai/gpt-oss-20b">gpt-oss-20b</option><option value="qwen/qwen3.8-27b">qwen3.8-27b</option></select>
+      <button onclick="saveKey()" class="pill !text-xs">Save</button>
+    </div>
+  </details>
+</div>
+
+<script>
+const S = window.STUDENTS, TT = window.TIMETABLES;
+const $ = id => document.getElementById(id);
+const DEFAULT_KEY = ''; // paste your own key in the panel at runtime — never commit real keys
+if(!localStorage.getItem('groq_key')) localStorage.setItem('groq_key', DEFAULT_KEY);
+$('groqKey').value = localStorage.getItem('groq_key');
+
+const BRANCHES = [...new Set(S.map(s => s.branch))].sort();
+const BRANCH_FULL = { CSE: 'Computer Science', AIML: 'AI & Machine Learning', AIDS: 'AI & Data Science', CSDS: 'Data Science', ECE: 'Electronics & Communication', EEE: 'Electrical & Electronics', 'CS-IoT': 'CS – Internet of Things' };
+let fBranch = 'CSE', fYear = 1, fSec = 'A', curStudent = null, curTab = 'att', lastList = 'students';
+const byId = id => S.find(s => s.student_id === id);
+const DOW = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+const todayName = (() => { const d = DOW[new Date().getDay()]; return d === 'Sun' ? 'Mon' : d; })();
+const need = a => a.pct >= 75 ? 0 : Math.ceil((0.75 * a.held - a.attended) / 0.25);
+
+/* ---------- nav ---------- */
+document.querySelectorAll('[data-nav]').forEach(b => b.addEventListener('click', () => go(b.dataset.nav)));
+function go(view){
+  ['home','students','student','timetables'].forEach(v => $('view-'+v).classList.add('hidden'));
+  $('view-'+view).classList.remove('hidden');
+  document.querySelectorAll('[data-nav]').forEach(b => b.classList.toggle('active', b.dataset.nav === view || (view === 'student' && b.dataset.nav === 'students')));
+  if(view === 'home') renderHome();
+  if(view === 'students') renderRoster();
+  if(view === 'timetables') renderTTPage();
+  window.scrollTo(0,0);
+}
+
+/* ---------- home ---------- */
+function renderHome(){
+  $('branchGrid').innerHTML = BRANCHES.map(b => `
+    <div class="branch-card" onclick="openBranch('${b}')">
+      <div class="text-2xl font-black" style="color:#4338ca">${b}</div>
+      <div class="text-xs text-slate-500 font-semibold">${BRANCH_FULL[b] || ''}</div>
+      <div class="text-xs text-slate-400 mt-1">Years 1–4 · Sections A–E</div>
+      <div class="text-sm font-bold mt-2" style="color:#0d9488">Open records →</div>
+    </div>`).join('');
+}
+function openBranch(b){ fBranch = b; fYear = 1; fSec = 'A'; $('crumb').textContent = b; go('students'); }
+
+/* ---------- roster ---------- */
+function pillRow(el, items, cur, cb){
+  $(el).innerHTML = items.map(x => `<button class="pill ${String(x) === String(cur) ? 'active' : ''}" data-v="${x}">${x}</button>`).join('');
+  $(el).querySelectorAll('button').forEach(b => b.addEventListener('click', () => cb(b.dataset.v)));
+}
+function renderRoster(){
+  $('crumb').textContent = fBranch;
+  pillRow('yearPills', [1,2,3,4], fYear, v => { fYear = +v; renderRoster(); });
+  pillRow('secPills', ['A','B','C','D','E'], fSec, v => { fSec = v; renderRoster(); });
+  const list = S.filter(s => s.branch === fBranch && s.year === fYear && s.section === fSec);
+  $('roster').innerHTML = list.map(s => `<tr class="rowclick" data-sid="${s.student_id}">
+    <td class="font-mono font-bold">${s.roll_no}</td>
+    <td class="font-semibold">${s.name}</td>
+    <td class="font-bold">${s.cgpa}</td>
+    <td class="${s.attendance.pct < 75 ? 'font-bold text-red-600' : ''}">${s.attendance.pct}%</td>
+    <td><button class="pill">Open →</button></td></tr>`).join('');
+  document.querySelectorAll('#roster tr[data-sid]').forEach(tr => tr.addEventListener('click', () => openStudent(tr.dataset.sid)));
+}
+function backToList(){ go(lastList === 'home' ? 'home' : 'students'); }
+
+/* ---------- search ---------- */
+$('search').addEventListener('input', e => {
+  const q = e.target.value.trim().toLowerCase(), wrap = $('searchResults'), box = $('searchBox');
+  if(q.length < 2){ wrap.classList.add('hidden'); return; }
+  const hits = S.filter(s => s.name.toLowerCase().includes(q) || s.roll_no.toLowerCase().includes(q) || s.student_id.toLowerCase().includes(q)).slice(0, 12);
+  box.innerHTML = hits.map(s => `<div class="p-2.5 hover:bg-indigo-50 cursor-pointer text-sm border-b border-slate-100" data-sid="${s.student_id}"><b>${s.name}</b> <span class="text-slate-500 text-xs">${s.roll_no} · ${s.branch}-Y${s.year}-${s.section} · CGPA ${s.cgpa}</span></div>`).join('') || '<div class="p-2.5 text-sm">No matches</div>';
+  wrap.classList.remove('hidden');
+  box.querySelectorAll('[data-sid]').forEach(d => d.addEventListener('click', () => { wrap.classList.add('hidden'); $('search').value = ''; openStudent(d.dataset.sid); }));
+});
+
+/* ---------- student ---------- */
+function openStudent(id){
+  curStudent = byId(id); if(!curStudent) return;
+  lastList = $('view-students').classList.contains('hidden') ? 'home' : 'students';
+  renderStudentTab('att');
+  go('student');
+}
+const TABS = [['att','Attendance'],['marks','Marks'],['records','Records'],['plan','Improvement Plan'],['place','Placement'],['tt','Timetable']];
+let activeCharts = [];
+function killCharts(){ activeCharts.forEach(c => { try { c.destroy(); } catch(e){} }); activeCharts = []; }
+function renderStudentTab(t){
+  curTab = t;
+  killCharts();
+  const s = curStudent;
+  const d = (s.cgpa - s.prev_cgpa).toFixed(2), n = need(s.attendance);
+  $('profile').innerHTML = `
+  <div class="card mb-3 flex flex-wrap items-center gap-3" style="border-top:4px solid #4338ca">
+    <div class="flex items-center justify-center font-black text-xl text-white" style="width:52px;height:52px;border-radius:16px;background:linear-gradient(135deg,#4338ca,#0d9488)">${s.name[0]}</div>
+    <div class="flex-1 min-w-[190px]">
+      <div class="text-xl font-extrabold">${s.name}</div>
+      <div class="text-xs text-slate-500 font-mono">${s.roll_no} · ${s.student_id} · ${s.branch} Y${s.year}-${s.section}</div>
+    </div>
+    <div class="text-center px-3"><div class="text-[11px] font-bold text-slate-400">CGPA</div><div class="text-2xl font-black">${s.cgpa} <span class="text-xs ${d >= 0 ? 'text-emerald-600' : 'text-red-600'}">(${d >= 0 ? '+' : ''}${d})</span></div></div>
+    <div class="text-center px-3"><div class="text-[11px] font-bold text-slate-400">ATTENDANCE</div><div class="text-2xl font-black ${s.attendance.pct < 75 ? 'text-red-600' : ''}">${s.attendance.pct}%</div></div>
+    <button class="pill active" onclick="askAI()">Ask AI Agent</button>
+  </div>
+  ${s.attendance.pct < 75 ? `<div class="card mb-3 text-sm" style="border-color:#fca5a5;background:#fef2f2"><b class="text-red-700">You are maintaining low attendance (${s.attendance.pct}%) — below the required 75%.</b> Attend the next <b>${n} classes without fail</b> to recover. Absents: ${s.attendance.absent} of ${s.attendance.held}.</div>` : ''}
+  <div class="flex flex-wrap gap-1.5 mb-2" id="sTabs"></div>
+  <div class="card" style="border-top-left-radius:0" id="sBody"></div>`;
+  $('sTabs').innerHTML = TABS.map(([k,l]) => `<span class="tab ${k === t ? 'active' : ''}" data-t="${k}">${l}</span>`).join('');
+  $('sTabs').querySelectorAll('.tab').forEach(x => x.addEventListener('click', () => renderStudentTab(x.dataset.t)));
+  const B = $('sBody');
+  if(t === 'att'){
+    const rows = [...s.subjects, ...s.labs];
+    B.innerHTML = `<div class="overflow-auto"><table class="ct"><thead><tr><th>#</th><th>Code</th><th>Subject</th><th>Attended</th><th>Held</th><th>%</th></tr></thead><tbody>
+      ${rows.map((x,i) => { const p = +(100 * x.attended / x.held).toFixed(2); return `<tr class="${p < 75 ? 'low' : ''}"><td>${i+1}</td><td class="font-mono">${x.code}</td><td>${x.name}</td><td>${x.attended}</td><td>${x.held}</td><td class="${p < 75 ? 'font-bold text-red-600' : 'font-semibold'}">${p}</td></tr>`; }).join('')}
+      <tr><td colspan="5" class="!text-right font-extrabold">Overall</td><td class="font-black">${s.attendance.pct}</td></tr></tbody></table></div>
+      <div class="text-xs text-slate-500 mt-2">Absent: ${(s.attendance.absent_dates.slice(0,12).join(', ') || '—')}${s.attendance.absent_dates.length > 12 ? ` (+${s.attendance.absent_dates.length - 12} more)` : ''}</div>
+      <canvas id="cAtt" height="110" style="max-width:460px"></canvas>`;
+    activeCharts.push(new Chart($('cAtt'), { type: 'bar',
+      data: { labels: rows.map(x => x.short), datasets: [{ data: rows.map(x => +(100 * x.attended / x.held).toFixed(1)),
+        backgroundColor: rows.map(x => (100 * x.attended / x.held) < 75 ? '#ef4444' : '#4338ca') }] },
+      options: { plugins: { legend: { display: false } },
+        scales: { y: { min: 0, max: 100 }, x: { ticks: { font: { size: 9 } } } } } }));
+  }
+  if(t === 'marks'){
+    B.innerHTML = `<div class="overflow-auto"><table class="ct"><thead><tr><th>#</th><th>Code</th><th>Subject</th><th>Current</th><th>Last Test</th><th>Change</th></tr></thead><tbody>
+      ${s.subjects.map((x,i) => { const dd = x.current - x.previous; return `<tr class="${x.current < 40 ? 'low' : ''}"><td>${i+1}</td><td class="font-mono">${x.code}</td><td>${x.name}</td><td class="font-bold">${x.current}</td><td>${x.previous}</td><td class="font-bold ${dd >= 0 ? 'text-emerald-600' : 'text-red-600'}">${dd >= 0 ? '+' : ''}${dd}</td></tr>`; }).join('')}</tbody></table></div>
+      <canvas id="cMk" height="120" style="max-width:540px" class="mt-2"></canvas>`;
+    activeCharts.push(new Chart($('cMk'), { type: 'bar',
+      data: { labels: s.subjects.map(x => x.code), datasets: [
+        { label: 'Current', data: s.subjects.map(x => x.current), backgroundColor: '#4338ca' },
+        { label: 'Last test', data: s.subjects.map(x => x.previous), backgroundColor: '#99f6e4' } ] },
+      options: { scales: { y: { min: 0, max: 100 } } } }));
+  }
+  if(t === 'records'){
+    const badge = r => r === 'on_time' ? '<b class="text-emerald-600">ON TIME</b>' : r === 'late' ? '<b class="text-amber-600">LATE</b>' : '<b class="text-red-600">PENDING</b>';
+    B.innerHTML = `<b class="text-sm">Lab records</b><div class="overflow-auto mt-1 mb-3"><table class="ct"><thead><tr><th>Lab</th><th>Marks</th><th>Record</th><th>Vs last time</th></tr></thead><tbody>
+      ${s.labs.map(l => `<tr class="${l.record === 'pending' ? 'low' : ''}"><td>${l.name}</td><td>${l.current}</td><td>${badge(l.record)}</td><td>${l.record === 'pending' ? '—' : (l.days_vs_last <= 0 ? Math.abs(l.days_vs_last) + ' day(s) earlier' : l.days_vs_last + ' day(s) later')}</td></tr>`).join('')}</tbody></table></div>
+      <b class="text-sm">Assignments</b><div class="overflow-auto mt-1"><table class="ct"><thead><tr><th>Subject</th><th>On time</th><th>Late</th><th>Pending</th></tr></thead><tbody>
+      ${s.subjects.map(x => { const g = x.assignments; return `<tr class="${g.pending ? 'low' : ''}"><td>${x.name}</td><td>${g.on_time}/${g.total}</td><td>${g.late}</td><td>${g.pending}</td></tr>`; }).join('')}</tbody></table></div>`;
+  }
+  if(t === 'plan'){
+    const p = s.plan;
+    B.innerHTML = `<div class="card mb-3 text-sm" style="background:#eef2ff;border-color:#c7d2fe"><b>Analysis:</b> ${p.summary}</div>
+      <div class="grid md:grid-cols-2 gap-3 text-sm mb-3">
+        <div><div class="text-xs font-bold text-slate-500 mb-1">FOCUS (WEAK)</div>${p.weak.map(w => `<span class="badge" style="background:#fee2e2;color:#b91c1c">${w}</span> `).join('')}
+        <div class="text-xs font-bold text-slate-500 mt-2 mb-1">PROTECT (STRONG)</div>${p.strong.map(w => `<span class="badge" style="background:#d1fae5;color:#047857">${w}</span> `).join('')}</div>
+        <div><div class="text-xs font-bold text-slate-500 mb-1">6-WEEK TARGETS</div><ul class="list-disc ml-5 space-y-1 text-sm">
+          <li>Lift ${p.weak[0]} past 60 → CGPA target <b>${(s.cgpa + 0.4).toFixed(2)}</b></li>
+          <li>Coding practice 3×/week (now ${s.skills.coding})</li>
+          ${s.attendance.pct < 75 ? `<li>Recover attendance: next ${n} classes without fail</li>` : '<li>Hold attendance above 75%</li>'}
+          <li>Every lab record on time for internal marks</li></ul></div>
+      </div>
+      <div class="text-xs font-bold text-slate-500 mb-1">WEEKLY STUDY SCHEDULE</div>
+      <div class="grid grid-cols-2 md:grid-cols-3 gap-2 mb-3">${Object.entries(p.timetable).map(([day, sl]) => `<div class="tt-cell"><b>${day}</b><br>5–7 PM · ${sl[0]}<br>7:30–9:30 PM · ${sl[1]}</div>`).join('')}<div class="tt-cell"><b>Sunday</b><br>Revision + previous papers</div></div>
+      <div class="text-xs font-bold text-slate-500 mb-1">ACTION TIPS</div>
+      <ul class="text-sm list-disc ml-5 space-y-1">${p.tips.map(x => `<li>${x}</li>`).join('')}</ul>
+      <div class="text-xs font-bold text-slate-500 mt-3 mb-1">IMPROVEMENT TRACKER</div>
+      ${s.feed.map(f => `<div class="text-xs mt-1 pl-2" style="border-left:3px solid ${f.tone === 'good' ? '#10b981' : '#ef4444'}">${f.text}</div>`).join('')}`;
+  }
+  if(t === 'place') renderPlace();
+  if(t === 'tt') renderStudentTT();
+}
+function ttGrid(t, hl){
+  const days = Object.keys(t.grid);
+  return `<div class="grid overflow-auto" style="grid-template-columns:80px repeat(6,minmax(105px,1fr));gap:5px;min-width:720px">
+    <div></div>${t.times.map(x => `<div class="text-[11px] font-bold text-slate-400">${x}</div>`).join('')}
+    ${days.map(d => `<div class="text-xs font-extrabold py-2 ${d === todayName && hl ? 'text-teal-700' : ''}">${d}${d === todayName && hl ? ' ●' : ''}</div>` + t.grid[d].map(c => `<div class="tt-cell ${c.includes('(Lab)') ? 'tt-lab' : ''} ${d === todayName && hl ? 'tt-today' : ''}">${c}</div>`).join('')).join('')}
+  </div>`;
+}
+function renderStudentTT(){
+  const s = curStudent, t = TT[`${s.branch}-${s.year}-${s.section}`];
+  $('sBody').innerHTML = `<b class="text-sm">Class timetable — ${s.branch} Y${s.year}-${s.section} · today ${todayName}</b><div class="mt-2">${ttGrid(t, true)}</div>
+  <b class="text-sm">Periods per week</b><div class="overflow-auto mt-1"><table class="ct"><thead><tr><th>Subject</th><th>Periods</th></tr></thead><tbody>
+  ${Object.entries(t.periods_per_week).sort((a,b) => b[1]-a[1]).map(([k,v]) => `<tr><td>${k}</td><td class="font-bold">${v}</td></tr>`).join('')}</tbody></table></div>`;
+}
+
+/* ---------- timetables ---------- */
+function renderTTPage(){
+  if(!$('ttBranch').options.length){
+    $('ttBranch').innerHTML = BRANCHES.map(b => `<option>${b}</option>`).join('');
+    ['ttBranch','ttYear','ttSec'].forEach(id => $(id).addEventListener('change', renderTTPage));
+  }
+  const t = TT[`${$('ttBranch').value}-${$('ttYear').value}-${$('ttSec').value}`];
+  $('ttToday').textContent = `Today: ${todayName}`;
+  $('ttBody').innerHTML = `<div class="card"><b class="text-sm">${$('ttBranch').value} · Year ${$('ttYear').value} · Section ${$('ttSec').value} — Mon to Sat</b><div class="mt-2">${ttGrid(t, true)}</div></div>`;
+}
+
+/* ---------- placement navigator ---------- */
+const ROLES = {
+  'Software Engineer': { Coding: 80, Aptitude: 70, Communication: 65, Technical: 75, Interview: 70 },
+  'Data Analyst': { Coding: 65, Aptitude: 80, Communication: 70, Technical: 70, Interview: 65 },
+  'Core Engineer': { Coding: 55, Aptitude: 75, Communication: 65, Technical: 80, Interview: 70 }
+};
+const PROJECTS = {
+  CSE: ['Task manager with authentication', 'REST API with tests', 'Open-source contribution'],
+  AIML: ['Image classifier with transfer learning', 'Chatbot with RAG pipeline', 'Kaggle competition entry'],
+  AIDS: ['Sales dashboard with EDA + insights', 'Churn prediction model', 'Open data visualisation story'],
+  CSDS: ['ETL pipeline + warehouse dashboard', 'Recommendation mini-engine', 'Streaming data notebook'],
+  ECE: ['Line-following robot with sensors', 'Home automation on ESP32', 'Signal filtering in MATLAB/Python'],
+  EEE: ['Solar charge-controller prototype', 'Load-scheduling simulation', 'Smart energy meter dashboard'],
+  'CS-IoT': ['Room-monitor IoT node + cloud log', 'Smart irrigation prototype', 'BLE asset tracker']
+};
+let placeRole = 'Software Engineer';
+function placeDims(s){
+  return { Coding: s.skills.coding, Aptitude: s.skills.aptitude, Communication: s.skills.soft,
+           Technical: s.skills.tech, Interview: s.skills.mock };
+}
+function roadKey(){ return `ct_road_${curStudent.student_id}_${placeRole}`; }
+function defaultRoadmap(s){
+  const t = ROLES[placeRole], cur = placeDims(s);
+  const gaps = Object.keys(t).map(k => [k, Math.round(t[k] - cur[k])]).sort((a,b) => b[1] - a[1]);
+  const w1 = gaps[0], w2 = gaps[1];
+  return [
+    { text: `${w1[0]} fundamentals refresh (${w1[1] > 0 ? w1[1] + ' pts gap' : 'target met — stretch further'})`, done: false },
+    { text: `${w2[0]} drills + problem-solving`, done: false },
+    { text: `Build: ${(PROJECTS[s.branch] || PROJECTS.CSE)[0]}`, done: false },
+    { text: `Aptitude sets + interview questions`, done: false },
+    { text: `Mock interview + review`, done: false }
+  ];
+}
+function loadRoad(s){
+  try { const r = JSON.parse(localStorage.getItem(roadKey())); if(Array.isArray(r) && r.length) return r; } catch(e){}
+  return defaultRoadmap(s);
+}
+function saveRoad(items){ localStorage.setItem(roadKey(), JSON.stringify(items)); }
+function renderPlace(){
+  const s = curStudent, B = $('sBody'), t = ROLES[placeRole], cur = placeDims(s);
+  const dims = Object.keys(t);
+  const met = dims.filter(k => cur[k] >= t[k]).length;
+  B.innerHTML = `
+  <div class="flex flex-wrap items-center gap-2 mb-3">
+    <span class="text-xs font-bold text-slate-500">TARGET ROLE</span>
+    <select id="roleSel">${Object.keys(ROLES).map(r => `<option ${r === placeRole ? 'selected' : ''}>${r}</option>`).join('')}</select>
+    <span class="text-xs text-slate-500">${met}/${dims.length} skills at target</span>
+  </div>
+  <div class="grid md:grid-cols-2 gap-3 mb-3">
+    <div class="card !p-3"><div class="text-xs font-bold text-slate-500 mb-1">CURRENT vs TARGET</div><canvas id="cRadar" height="220"></canvas></div>
+    <div class="card !p-3"><div class="text-xs font-bold text-slate-500 mb-2">SKILL GAPS</div>
+      ${dims.map(k => { const v = Math.round(cur[k]), g = t[k], ok = v >= g, pct = Math.min(100, Math.round(100 * v / g)); return `
+        <div class="mb-2"><div class="flex justify-between text-xs mb-0.5"><span class="font-bold">${k}</span><span>${v} / ${g} ${ok ? '<b class="text-emerald-600">✓</b>' : `<b class="text-red-600">−${g - v}</b>`}</span></div>
+        <div class="bar-track" style="background:#e2e8f0"><div class="bar-fill" style="width:${pct}%;background:${ok ? '#10b981' : '#f59e0b'}"></div></div></div>`; }).join('')}
+      <div class="text-xs font-bold text-slate-500 mt-3 mb-1">PROJECT IDEAS (${s.branch})</div>
+      <ul class="text-sm list-disc ml-5 space-y-0.5">${(PROJECTS[s.branch] || PROJECTS.CSE).map(p => `<li>${p}</li>`).join('')}</ul>
+    </div>
+  </div>
+  <div class="card !p-3"><div class="flex items-center justify-between mb-2"><b class="text-sm" id="roadHead"></b><span class="text-xs text-slate-500">saved in this browser</span></div>
+    <div id="roadList" class="space-y-2"></div>
+    <div class="flex gap-2 mt-2"><input type="text" id="roadIn" class="flex-1" placeholder="Add a week's focus..."><button class="pill active" onclick="addWeek()">Add week</button></div>
+  </div>
+  <p class="text-[11px] text-slate-400 mt-2">Role targets are sample values. Completing the roadmap builds skills but does not guarantee an internship or job.</p>`;
+  $('roleSel').addEventListener('change', e => { placeRole = e.target.value; renderPlace(); });
+  $('roadIn').addEventListener('keydown', e => { if(e.key === 'Enter') addWeek(); });
+  activeCharts.push(new Chart($('cRadar'), { type: 'radar',
+    data: { labels: dims, datasets: [
+      { label: 'Target', data: dims.map(k => t[k]), borderColor: '#f59e0b', backgroundColor: 'rgba(245,158,11,.12)', pointRadius: 2 },
+      { label: 'Current', data: dims.map(k => Math.round(cur[k])), borderColor: '#4338ca', backgroundColor: 'rgba(67,56,202,.25)', pointRadius: 3 } ] },
+    options: { scales: { r: { min: 0, max: 100, ticks: { stepSize: 20, font: { size: 9 } }, pointLabels: { font: { size: 11, weight: 'bold' } } } },
+      plugins: { legend: { labels: { boxWidth: 12, font: { size: 11 } } } } } }));
+  paintRoad();
+}
+function paintRoad(){
+  const items = loadRoad(curStudent);
+  const done = items.filter(i => i.done).length;
+  $('roadHead').textContent = `Weekly roadmap — ${items.length ? Math.round(100 * done / items.length) : 0}% complete`;
+  $('roadList').innerHTML = items.map((w,i) => `
+    <div class="flex items-center gap-3 p-2.5 rounded-xl border border-slate-200 ${w.done ? 'bg-emerald-50' : 'bg-white'}">
+      <button onclick="toggleWeek(${i})" title="mark done" style="width:20px;height:20px;border-radius:9999px;border:2px solid ${w.done ? '#10b981' : '#cbd5e1'};background:${w.done ? '#10b981' : '#fff'};flex-shrink:0"></button>
+      <span class="text-xs font-bold text-slate-400 w-14">Week ${i+1}</span>
+      <span class="text-sm flex-1 ${w.done ? 'line-through text-slate-400' : ''}">${w.text}</span>
+      <button onclick="delWeek(${i})" class="text-slate-300 hover:text-red-500 font-bold" title="remove">✕</button>
+    </div>`).join('');
+}
+function toggleWeek(i){ const items = loadRoad(curStudent); items[i].done = !items[i].done; saveRoad(items); paintRoad(); }
+function delWeek(i){ const items = loadRoad(curStudent); items.splice(i,1); saveRoad(items); paintRoad(); }
+function addWeek(){ const v = $('roadIn').value.trim(); if(!v) return; const items = loadRoad(curStudent); items.push({ text: v, done: false }); saveRoad(items); paintRoad(); }
+
+/* ---------- AI agent ---------- */
+let aiStudent = null, aiOpen = false;
+const BUBBLE_ICON = $('aiBubble').innerHTML;
+function toggleAI(force){
+  aiOpen = force !== undefined ? force : !aiOpen;
+  $('aiCard').style.display = aiOpen ? 'flex' : 'none';
+  $('aiBubble').innerHTML = aiOpen ? '<span style="color:#fff;font-size:22px;font-weight:800">✕</span>' : BUBBLE_ICON;
+  if(aiOpen){ renderChips(); $('chat').scrollTop = $('chat').scrollHeight; }
+}
+function askAI(){
+  aiStudent = curStudent;
+  $('aiCtx').textContent = aiStudent ? `Helping ${aiStudent.name} (${aiStudent.roll_no})` : 'Ask anything about the open student record.';
+  toggleAI(true);
+  if(aiStudent) addMsg('ai', `I have ${aiStudent.name}'s record (${aiStudent.roll_no}, CGPA ${aiStudent.cgpa}, attendance ${aiStudent.attendance.pct}%). Pick a suggestion or ask any doubt.`);
+}
+function renderChips(){
+  const s = aiStudent || curStudent;
+  const list = s
+    ? [`Why is ${s.plan.weak[0]} my weakest subject?`, 'How do I cross 75% attendance?', 'Give me this week\u2019s study plan', 'Which records are pending?']
+    : ['How does the study plan work?', 'What happens below 75% attendance?', 'How is CGPA improved?'];
+  $('chips').innerHTML = list.map(q => `<button class="chip">${q}</button>`).join('');
+  $('chips').querySelectorAll('.chip').forEach(c => c.addEventListener('click', () => { $('chatIn').value = c.textContent; sendChat(); }));
+}
+const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+if(!SR){ $('micBtn').style.display = 'none'; }
+else { $('micBtn').addEventListener('click', () => { const r = new SR(); r.lang = 'en-IN'; r.onresult = e => { $('chatIn').value += e.results[0][0].transcript; }; r.start(); }); }
+function saveKey(){ localStorage.setItem('groq_key', $('groqKey').value.trim()); addMsg('ai', 'Key saved. Refreshing available models...'); refreshModels(); }
+async function refreshModels(){
+  const key = ($('groqKey').value || localStorage.getItem('groq_key') || '').trim();
+  if(!key) return;
+  try {
+    const res = await fetch('https://api.groq.com/openai/v1/models', { headers: { 'Authorization': 'Bearer ' + key } });
+    if(!res.ok) throw new Error('HTTP ' + res.status);
+    const ids = (await res.json()).data.map(m => m.id).sort();
+    if(!ids.length) throw new Error('empty list');
+    const prev = $('groqModel').value;
+    $('groqModel').innerHTML = ids.map(id => `<option value="${id}">${id}</option>`).join('');
+    $('groqModel').value = ids.includes(prev) ? prev : (ids.find(i => i.includes('gpt-oss-120b')) || ids.find(i => i.includes('gpt-oss-20b')) || ids.find(i => i.includes('qwen')) || ids.find(i => !/whisper|guard/i.test(i)) || ids[0]);
+    $('aiCtx').textContent = `Groq connected · ${ids.length} models · using ${$('groqModel').value}`;
+  } catch(e){ $('aiCtx').textContent = 'Using default models'; }
+}
+function addMsg(who, text){
+  const d = document.createElement('div');
+  d.className = `p-2.5 rounded-xl max-w-[92%] text-sm ${who === 'ai' ? 'chat-ai' : 'chat-user ml-auto'}`;
+  d.style.whiteSpace = 'pre-wrap'; d.textContent = text;
+  $('chat').appendChild(d); $('chat').scrollTop = $('chat').scrollHeight;
+  return d;
+}
+$('chatIn').addEventListener('keydown', e => { if(e.key === 'Enter') sendChat(); });
+function ctx(s){
+  return `Student ${s.name} (${s.roll_no}, ${s.branch} Y${s.year}-${s.section}): CGPA ${s.cgpa} prev ${s.prev_cgpa}. Subjects: ${s.subjects.map(x => `${x.name} ${x.current}(prev ${x.previous}, att ${x.attended}/${x.held})`).join('; ')}. Labs: ${s.labs.map(l => `${l.name} ${l.current}, record ${l.record}`).join('; ')}. Overall attendance ${s.attendance.pct}%. Plan: ${s.plan.summary}`;
+}
+function localReply(q, s){
+  q = q.toLowerCase();
+  if(s){
+    const all = [...s.subjects, ...s.labs];
+    const hit = all.find(x => q.includes(x.name.toLowerCase().split(' ')[0].slice(0,4)) || q.includes(x.code.toLowerCase()));
+    if(hit) return `${hit.name}: scored ${hit.current} (last ${hit.previous}). ${hit.current < 60 ? 'Do solved examples first, then 10 previous-paper questions daily.' : 'Strong — keep with timed revision.'}`;
+    if(/attend|absent/.test(q)) return s.attendance.pct < 75 ? `Low attendance ${s.attendance.pct}% — attend next ${need(s.attendance)} classes without fail to cross 75%.` : `Attendance ${s.attendance.pct}% is safe.`;
+    if(/plan|timetable|improve|study/.test(q)) return s.plan.summary;
+    return `${s.name}: weakest ${s.plan.weak.join(', ')}, strongest ${s.plan.strong.join(', ')}. ${s.plan.tips[0]} (Offline reply — Groq unreachable.)`;
+  }
+  return 'Open a student record and press "Ask AI Agent" for personalised help, or ask a subject doubt directly.';
+}
+async function sendChat(){
+  const inp = $('chatIn'), msg = inp.value.trim(); if(!msg) return;
+  inp.value = ''; addMsg('user', msg);
+  const typing = addMsg('ai', 'Thinking...');
+  const key = ($('groqKey').value || localStorage.getItem('groq_key') || '').trim();
+  const sys = (aiStudent || curStudent)
+    ? 'You are a friendly college study tutor. Personalise with this record. Be concrete.\n' + ctx(aiStudent || curStudent)
+    : 'You are a friendly college study tutor for engineering subjects. Explain briefly with one practice tip.';
+  if(!key){ typing.textContent = localReply(msg, aiStudent || curStudent); return; }
+  try {
+    const res = await fetch('https://api.groq.com/openai/v1/chat/completions', { method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + key },
+      body: JSON.stringify({ model: $('groqModel').value, temperature: 0.7, max_tokens: 1200,
+        messages: [{ role: 'system', content: sys }, { role: 'user', content: msg }] }) });
+    if(!res.ok){
+      let detail = '';
+      try { detail = ' — ' + ((await res.json()).error.message || ''); } catch(_){}
+      throw new Error('Groq ' + res.status + detail);
+    }
+    typing.textContent = (await res.json()).choices[0].message.content;
+  } catch(e){ typing.textContent = 'Groq error (' + e.message + '). Offline answer:\n' + localReply(msg, aiStudent || curStudent); }
+  $('chat').scrollTop = $('chat').scrollHeight;
+}
+
+renderHome(); renderChips(); refreshModels(); go('home');
+$('footNote').textContent = `CampusTrack · ${S.length} students · ${BRANCHES.join(' / ')} · Years 1–4 · Sec A–E`;
+addMsg('ai', 'Hi! I am your Study Agent. Open any student and press "Ask AI Agent", or tap a suggestion. Add a Groq key below for full AI answers.');
+</script>
+</body>
+</html>
